@@ -87,21 +87,18 @@ defmodule LoggerLogstashBackend do
 
     ts = Timex.to_datetime(ts, Timezone.local())
 
-    json = """
-    {
-      "type": "#{type}",
-      "@timestamp": "#{Timex.format!(ts, "{ISO:Extended}")}",
-      "message": "#{to_string(msg)}" <> " :)",
-      "fields": "#{fields}"
-    }
-    """
+    case JSX.encode(%{
+           type: type,
+           "@timestamp": Timex.format!(ts, "{ISO:Extended}"),
+           message: to_string(msg),
+           fields: fields
+         }) do
+      {:ok, json} ->
+        :gen_udp.send(socket, host, port, to_string(json))
 
-    :gen_udp.send(
-      socket,
-      host,
-      port,
-      json
-    )
+      _ ->
+        nil
+    end
   end
 
   defp configure(name, opts) do
