@@ -96,7 +96,19 @@ defmodule LoggerLogstashBackend do
       {:ok, json} ->
         :gen_udp.send(socket, host, port, to_string(json))
 
-      _ ->
+      e ->
+        IO.inspect(e, label: "logger_logstash_backend encode error")
+
+        IO.inspect(
+          %{
+            type: type,
+            "@timestamp": Timex.format!(ts, "{ISO:Extended}"),
+            message: to_string(msg),
+            fields: fields
+          },
+          label: "logger_logstash_backend encode params"
+        )
+
         nil
     end
   end
