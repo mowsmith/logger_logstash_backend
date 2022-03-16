@@ -96,17 +96,21 @@ defmodule LoggerLogstashBackend do
       {:ok, json} ->
         :gen_udp.send(socket, host, port, to_string(json))
 
-      e ->
+      _ ->
+        json = """
+        {
+          "type": "#{type}",
+          "@timestamp": "#{Timex.format!(ts, "{ISO:Extended}")}",
+          "message": "#{to_string(msg)}",
+          "fields": "#{fields}"
+        }
+        """
+
         :gen_udp.send(
           socket,
           host,
           port,
-          inspect(%{
-            type: type,
-            "@timestamp": Timex.format!(ts, "{ISO:Extended}"),
-            message: to_string(msg),
-            fields: fields
-          })
+          json
         )
     end
   end
