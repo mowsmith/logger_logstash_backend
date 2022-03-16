@@ -87,6 +87,16 @@ defmodule LoggerLogstashBackend do
 
     ts = Timex.to_datetime(ts, Timezone.local())
 
+    IO.inspect(
+      %{
+        type: type,
+        "@timestamp": Timex.format!(ts, "{ISO:Extended}"),
+        message: to_string(msg),
+        fields: fields
+      },
+      label: "logger_logstash_backend encode params"
+    )
+
     case JSX.encode(%{
            type: type,
            "@timestamp": Timex.format!(ts, "{ISO:Extended}"),
@@ -98,17 +108,6 @@ defmodule LoggerLogstashBackend do
 
       e ->
         IO.inspect(e, label: "logger_logstash_backend encode error")
-
-        IO.inspect(
-          %{
-            type: type,
-            "@timestamp": Timex.format!(ts, "{ISO:Extended}"),
-            message: to_string(msg),
-            fields: fields
-          },
-          label: "logger_logstash_backend encode params"
-        )
-
         nil
     end
   end
