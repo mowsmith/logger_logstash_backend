@@ -87,16 +87,6 @@ defmodule LoggerLogstashBackend do
 
     ts = Timex.to_datetime(ts, Timezone.local())
 
-    IO.inspect(
-      %{
-        type: type,
-        "@timestamp": Timex.format!(ts, "{ISO:Extended}"),
-        message: to_string(msg),
-        fields: fields
-      },
-      label: "logger_logstash_backend encode params"
-    )
-
     case JSX.encode(%{
            type: type,
            "@timestamp": Timex.format!(ts, "{ISO:Extended}"),
@@ -107,8 +97,17 @@ defmodule LoggerLogstashBackend do
         :gen_udp.send(socket, host, port, to_string(json))
 
       e ->
-        IO.inspect(e, label: "logger_logstash_backend encode error")
-        nil
+        :gen_udp.send(
+          socket,
+          host,
+          port,
+          inspect(%{
+            type: type,
+            "@timestamp": Timex.format!(ts, "{ISO:Extended}"),
+            message: to_string(msg),
+            fields: fields
+          })
+        )
     end
   end
 
